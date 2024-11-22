@@ -30,6 +30,13 @@
         {
             this.components = new System.ComponentModel.Container();
             this.CardsHolder = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.timer3 = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.ScoreCounter = new System.Windows.Forms.Label();
+            this.ScoreLable = new System.Windows.Forms.Label();
             this.DupCard12 = new System.Windows.Forms.PictureBox();
             this.Card12 = new System.Windows.Forms.PictureBox();
             this.DupCard11 = new System.Windows.Forms.PictureBox();
@@ -54,13 +61,6 @@
             this.Card2 = new System.Windows.Forms.PictureBox();
             this.DupCard1 = new System.Windows.Forms.PictureBox();
             this.Card1 = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.timer3 = new System.Windows.Forms.Timer(this.components);
-            this.button1 = new System.Windows.Forms.Button();
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.ScoreCounter = new System.Windows.Forms.Label();
-            this.ScoreLable = new System.Windows.Forms.Label();
             this.CardsHolder.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DupCard12)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.Card12)).BeginInit();
@@ -119,6 +119,61 @@
             this.CardsHolder.Padding = new System.Windows.Forms.Padding(5);
             this.CardsHolder.Size = new System.Drawing.Size(655, 648);
             this.CardsHolder.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label1.Location = new System.Drawing.Point(716, 52);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(0, 19);
+            this.label1.TabIndex = 25;
+            // 
+            // timer3
+            // 
+            this.timer3.Interval = 500;
+            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("굴림", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.button1.Location = new System.Drawing.Point(673, 77);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(108, 97);
+            this.button1.TabIndex = 23;
+            this.button1.Text = "Play Again";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // timer2
+            // 
+            this.timer2.Interval = 1000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
+            // timer1
+            // 
+            this.timer1.Interval = 5000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // ScoreCounter
+            // 
+            this.ScoreCounter.AutoSize = true;
+            this.ScoreCounter.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ScoreCounter.Location = new System.Drawing.Point(749, 24);
+            this.ScoreCounter.Name = "ScoreCounter";
+            this.ScoreCounter.Size = new System.Drawing.Size(20, 19);
+            this.ScoreCounter.TabIndex = 24;
+            this.ScoreCounter.Text = "0";
+            // 
+            // ScoreLable
+            // 
+            this.ScoreLable.AutoSize = true;
+            this.ScoreLable.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ScoreLable.Location = new System.Drawing.Point(684, 24);
+            this.ScoreLable.Name = "ScoreLable";
+            this.ScoreLable.Size = new System.Drawing.Size(68, 19);
+            this.ScoreLable.TabIndex = 23;
+            this.ScoreLable.Text = "score:";
             // 
             // DupCard12
             // 
@@ -407,61 +462,6 @@
             this.Card1.TabStop = false;
             this.Card1.Tag = "1";
             this.Card1.Click += new System.EventHandler(this.Card1_Click);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label1.Location = new System.Drawing.Point(716, 52);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(0, 19);
-            this.label1.TabIndex = 25;
-            // 
-            // timer3
-            // 
-            this.timer3.Interval = 500;
-            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
-            // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("굴림", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.button1.Location = new System.Drawing.Point(673, 77);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(108, 97);
-            this.button1.TabIndex = 23;
-            this.button1.Text = "Play Again";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // timer2
-            // 
-            this.timer2.Interval = 1000;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
-            // timer1
-            // 
-            this.timer1.Interval = 5000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // ScoreCounter
-            // 
-            this.ScoreCounter.AutoSize = true;
-            this.ScoreCounter.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ScoreCounter.Location = new System.Drawing.Point(749, 24);
-            this.ScoreCounter.Name = "ScoreCounter";
-            this.ScoreCounter.Size = new System.Drawing.Size(20, 19);
-            this.ScoreCounter.TabIndex = 24;
-            this.ScoreCounter.Text = "0";
-            // 
-            // ScoreLable
-            // 
-            this.ScoreLable.AutoSize = true;
-            this.ScoreLable.Font = new System.Drawing.Font("굴림", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ScoreLable.Location = new System.Drawing.Point(684, 24);
-            this.ScoreLable.Name = "ScoreLable";
-            this.ScoreLable.Size = new System.Drawing.Size(68, 19);
-            this.ScoreLable.TabIndex = 23;
-            this.ScoreLable.Text = "score:";
             // 
             // GameWindow
             // 

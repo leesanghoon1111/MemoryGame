@@ -12,11 +12,12 @@ namespace GAME14
 {
     public partial class GameWindow : Form
     {
-     
+        private bool isClickBlocked = false;
+
         Random Location = new Random();
         //게임에서 무작위 위치를 생성하기 위해 Random 클래스의 인스턴스를 생성합니다. 
         //이를 통해 카드의 위치를 무작위로 섞을 때 사용할 수 있습니다.
-        List<Point> points =new List<Point>();
+        List<Point> points = new List<Point>();
         //points는 좌표(x, y 값)를 저장하는 리스트입니다.
         //게임 시작 시 각 카드의 위치를 기록하거나, 섞인 후 위치를 저장하는 데 사용됩니다.
         bool again = false;
@@ -27,7 +28,7 @@ namespace GAME14
         //플레이어가 선택한 두 개의 카드(PictureBox 객체)를 임시로 저장하는 데 사용됩니다.
         //두 카드를 비교해서 같은지 확인하거나, 맞지 않으면 원래 상태로 되돌리기 위해 사용됩니다.
         public GameWindow()
-        {                   
+        {
             InitializeComponent();//여러가지 버튼 초기화
         }
 
@@ -35,11 +36,11 @@ namespace GAME14
         {
 
             ScoreCounter.Text = "0";//게임시작시  ScoreCounter의 텍스트를 0으로 초기화,게임시작시 점수를 초기화
-            label1.Text = "5"; 
-            foreach(PictureBox picture in CardsHolder.Controls)
+            label1.Text = "5";
+            foreach (PictureBox picture in CardsHolder.Controls)
             {
 
-                picture.Enabled= false;
+                picture.Enabled = false;
                 points.Add(picture.Location);
 
             }
@@ -47,7 +48,7 @@ namespace GAME14
             //모든 PictureBox의 위치(Location)를 points 리스트에 추가하여 나중에 섞기 위해 저장합니다.
             foreach (PictureBox picture in CardsHolder.Controls)
             {
-                int next =Location.Next(points.Count);
+                int next = Location.Next(points.Count);
                 Point p = points[next];
                 picture.Location = p;
                 points.Remove(p);
@@ -85,7 +86,7 @@ namespace GAME14
             DupCard12.Image = Properties.Resources.Card12;
 
             //Properties.Resources를 통해 프로젝트 리소스에 저장된 이미지 파일을 참조합니다.
-            
+
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -95,7 +96,7 @@ namespace GAME14
             {
                 picture.Enabled = true;//모든 카드를 활성화하여 클릭 가능하게 만듭니다.
                 picture.Cursor = Cursors.Hand;//마우스를 카드 위에 올렸을 때 커서가 손 모양으로 표시되도록 설정합니다.
-                picture.Image = Properties.Resources.Cover;//각 카드의 이미지를 "뒷면"으로 설정하여 숨깁니다.
+                picture.Image = Properties.Resources.Cover2;//각 카드의 이미지를 "뒷면"으로 설정하여 숨깁니다.
 
             }
         }
@@ -118,726 +119,995 @@ namespace GAME14
         #region Cards
         private void Card1_Click(object sender, EventArgs e)//카드 Card1 클릭 시 동작을 정의합니다. 카드의 이미지를 보여주고, 선택한 카드의 정보를 관리합니다.
         {
-            Card1.Image = Properties.Resources.Card1;//Card1의 이미지를 카드의 앞면(지정된 이미지)으로 설정합니다.
+            PictureBox clickedCard = sender as PictureBox;
+            if (isClickBlocked)
+                return;
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (pendingImage1 == Card1 || pendingImage2 == Card1)
+                return;
+
+            Card1.Image = Properties.Resources.Card1; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
-                {
-                pendingImage1 = Card1;//첫번째 선택이 비어있으면 Card1을 pendingImage1에 저장합니다.
-            }
-            else if(pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card1;//첫 번째 선택이 존재하고, 두 번째 선택이 비어 있으면 Card1을 pendingImage2에 저장합니다.
+                pendingImage1 = Card1; // 첫 번째 카드 선택
             }
-            if(pendingImage1 != null &&pendingImage2 != null)//두 장의 카드가 선택된 경우:
+            else if (pendingImage1 != null && pendingImage2 == null)
             {
-                if(pendingImage1.Tag == pendingImage2.Tag)//두 카드의 Tag 속성이 같으면
+                pendingImage2 = Card1; // 두 번째 카드 선택
+            }
+
+            if (pendingImage1 != null && pendingImage2 != null)
+            {
+                isClickBlocked = true;
+                if (pendingImage1.Tag == pendingImage2.Tag)
                 {
-                    pendingImage1 = null;//선택된 두카드를 초기화
-                    pendingImage2 = null;//선택된 두카드를 초기화
-                    Card1.Enabled = false;//해당 카드와 짝 카드의 클릭을 비활성화합니다.
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
 
-                    DupCard1.Enabled = false;//해당 카드와 짝 카드의 클릭을 비활성화합니다.
-
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);//점수증가
+                    pendingImage1 = null;
+                    pendingImage2 = null;
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);//점수감소
-                    timer3.Start();//timer3를 시작하여 일정 시간 뒤 두 카드를 다시 "뒤집는" 작업을 수행합니다.
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
+                    timer3.Start();
                 }
-              
             }
         }
 
         private void DupCard1_Click(object sender, EventArgs e)
         {
-            DupCard1.Image = Properties.Resources.Card1;//DupCard1의 이미지를 카드의 앞면(지정된 이미지)으로 설정합니다.
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard1 || pendingImage2 == DupCard1)
+                return;
+
+            DupCard1.Image = Properties.Resources.Card1; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard1;
+                pendingImage1 = DupCard1; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard1;
+                pendingImage2 = DupCard1; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card1.Enabled = false;
-                    DupCard1.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-               
             }
         }
 
         private void Card2_Click(object sender, EventArgs e)
         {
-            Card2.Image = Properties.Resources.Card2;
-           
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 Card2가 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card2 || pendingImage2 == Card2)
+                return;
+
+            Card2.Image = Properties.Resources.Card2; // Card2의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card2;
+                pendingImage1 = Card2; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card2;
+                pendingImage2 = Card2; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card2.Enabled = false;
-                    DupCard2.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-               
             }
         }
 
         private void DupCard2_Click(object sender, EventArgs e)
         {
-            DupCard2.Image = Properties.Resources.Card2;
-          
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard2가 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard2 || pendingImage2 == DupCard2)
+                return;
+
+            DupCard2.Image = Properties.Resources.Card2; // DupCard2의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard2;
+                pendingImage1 = DupCard2; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard2;
+                pendingImage2 = DupCard2; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card2.Enabled = false;
-                    DupCard2.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) -10);
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-               
             }
         }
 
         private void Card3_Click(object sender, EventArgs e)
         {
-            Card3.Image = Properties.Resources.Card3;
+            PictureBox clickedCard = sender as PictureBox;
+            if (isClickBlocked)
+                return;
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (pendingImage1 == Card3 || pendingImage2 == Card3)
+                return;
+
+            Card3.Image = Properties.Resources.Card3; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card3;
+                pendingImage1 = Card3; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card3;
+                pendingImage2 = Card3; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card3.Enabled = false;
-                    DupCard3.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard3_Click(object sender, EventArgs e)
         {
-            DupCard3.Image = Properties.Resources.Card3;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard3 || pendingImage2 == DupCard3)
+                return;
+
+            DupCard3.Image = Properties.Resources.Card3; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard3;
+                pendingImage1 = DupCard3; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard3;
+                pendingImage2 = DupCard3; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card3.Enabled = false;
-                    DupCard3.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card4_Click(object sender, EventArgs e)
         {
-            Card4.Image = Properties.Resources.Card4;
+            PictureBox clickedCard = sender as PictureBox;
+            if (isClickBlocked)
+                return;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (pendingImage1 == Card4 || pendingImage2 == Card4)
+                return;
+
+            Card4.Image = Properties.Resources.Card4; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card4;
+                pendingImage1 = Card4; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card4;
+                pendingImage2 = Card4; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card4.Enabled = false;
-                    DupCard4.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
 
         }
 
         private void DupCard4_Click(object sender, EventArgs e)
         {
-            DupCard4.Image = Properties.Resources.Card4;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard4 || pendingImage2 == DupCard4)
+                return;
+
+            DupCard4.Image = Properties.Resources.Card4; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard4;
+                pendingImage1 = DupCard4; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard4;
+                pendingImage2 = DupCard4; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card4.Enabled = false;
-                    DupCard4.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card5_Click(object sender, EventArgs e)
         {
-            Card5.Image = Properties.Resources.Card5;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card5 || pendingImage2 == Card5)
+                return;
+
+            Card5.Image = Properties.Resources.Card5; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card5;
+                pendingImage1 = Card5; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card5;
+                pendingImage2 = Card5; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card5.Enabled = false;
-                    DupCard5.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard5_Click(object sender, EventArgs e)
         {
-            DupCard5.Image = Properties.Resources.Card5;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard5 || pendingImage2 == DupCard5)
+                return;
+
+            DupCard5.Image = Properties.Resources.Card5; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard5;
+                pendingImage1 = DupCard5; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard5;
+                pendingImage2 = DupCard5; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card5.Enabled = false;
-                    DupCard5.Enabled = false;
-                      ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) -10);
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card6_Click(object sender, EventArgs e)
         {
-            Card6.Image = Properties.Resources.Card6;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card6 || pendingImage2 == Card6)
+                return;
+
+            Card6.Image = Properties.Resources.Card6; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card6;
+                pendingImage1 = Card6; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card6;
+                pendingImage2 = Card6; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card6.Enabled = false;
-                    DupCard6.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard6_Click(object sender, EventArgs e)
         {
-            DupCard6.Image = Properties.Resources.Card6;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard6 || pendingImage2 == DupCard6)
+                return;
+
+            DupCard6.Image = Properties.Resources.Card6; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard6;
+                pendingImage1 = DupCard6; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard6;
+                pendingImage2 = DupCard6; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card6.Enabled = false;
-                    DupCard6.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card7_Click(object sender, EventArgs e)
         {
-            Card7.Image = Properties.Resources.Card7;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card7 || pendingImage2 == Card7)
+                return;
+
+            Card7.Image = Properties.Resources.Card7; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card7;
+                pendingImage1 = Card7; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card7;
+                pendingImage2 = Card7; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card7.Enabled = false;
-                    DupCard7.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard7_Click(object sender, EventArgs e)
         {
-            DupCard7.Image = Properties.Resources.Card7;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard7 || pendingImage2 == DupCard7)
+                return;
+
+            DupCard7.Image = Properties.Resources.Card7; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard7;
+                pendingImage1 = DupCard7; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard7;
+                pendingImage2 = DupCard7; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card7.Enabled = false;
-                    DupCard7.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card8_Click(object sender, EventArgs e)
         {
-            Card8.Image = Properties.Resources.Card8;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card8 || pendingImage2 == Card8)
+                return;
+
+            Card8.Image = Properties.Resources.Card8; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card8;
+                pendingImage1 = Card8; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card8;
+                pendingImage2 = Card8; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card8.Enabled = false;
-                    DupCard8.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard8_Click(object sender, EventArgs e)
         {
-            DupCard8.Image = Properties.Resources.Card8;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard8 || pendingImage2 == DupCard8)
+                return;
+
+            DupCard8.Image = Properties.Resources.Card8; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard8;
+                pendingImage1 = DupCard8; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard8;
+                pendingImage2 = DupCard8; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card8.Enabled = false;
-                    DupCard8.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card9_Click(object sender, EventArgs e)
         {
-            Card9.Image = Properties.Resources.Card9;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card9 || pendingImage2 == Card9)
+                return;
+
+            Card9.Image = Properties.Resources.Card9; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card9;
+                pendingImage1 = Card9; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card9;
+                pendingImage2 = Card9; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card9.Enabled = false;
-                    DupCard9.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard9_Click(object sender, EventArgs e)
         {
-            DupCard9.Image = Properties.Resources.Card9;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard9 || pendingImage2 == DupCard9)
+                return;
+
+            DupCard9.Image = Properties.Resources.Card9; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard9;
+                pendingImage1 = DupCard9; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard9;
+                pendingImage2 = DupCard9; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card9.Enabled = false;
-                    DupCard9.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card10_Click(object sender, EventArgs e)
         {
-            Card10.Image = Properties.Resources.Card10;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card10 || pendingImage2 == Card10)
+                return;
+
+            Card10.Image = Properties.Resources.Card10; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card10;
+                pendingImage1 = Card10; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card10;
+                pendingImage2 = Card10; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card10.Enabled = false;
-                    DupCard10.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard10_Click(object sender, EventArgs e)
         {
-            DupCard10.Image = Properties.Resources.Card10;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard10 || pendingImage2 == DupCard10)
+                return;
+
+            DupCard10.Image = Properties.Resources.Card10; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard10;
+                pendingImage1 = DupCard10; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard10;
+                pendingImage2 = DupCard10; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card10.Enabled = false;
-                    DupCard10.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card11_Click(object sender, EventArgs e)
         {
-            Card11.Image = Properties.Resources.Card11;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card11 || pendingImage2 == Card11)
+                return;
+
+            Card11.Image = Properties.Resources.Card11; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card11;
+                pendingImage1 = Card11; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card11;
+                pendingImage2 = Card11; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card11.Enabled = false;
-                    DupCard11.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard11_Click(object sender, EventArgs e)
         {
-            DupCard11.Image = Properties.Resources.Card11;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard11 || pendingImage2 == DupCard11)
+                return;
+
+            DupCard11.Image = Properties.Resources.Card11; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard11;
+                pendingImage1 = DupCard11; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard11;
+                pendingImage2 = DupCard11; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card11.Enabled = false;
-                    DupCard11.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
 
         private void Card12_Click(object sender, EventArgs e)
         {
-            Card12.Image = Properties.Resources.Card12;
+            PictureBox clickedCard = sender as PictureBox;
+
+            // 이미 Card1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == Card12 || pendingImage2 == Card12)
+                return;
+
+            Card12.Image = Properties.Resources.Card12; // Card1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = Card12;
+                pendingImage1 = Card12; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = Card12;
+                pendingImage2 = Card12; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card12.Enabled = false;
-                    DupCard12.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
-                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
-                    timer3.Start();
+                    ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10); // 점수 감소
+                    timer3.Start(); // 일정 시간 뒤 카드 뒤집기
                 }
-
             }
         }
 
         private void DupCard12_Click(object sender, EventArgs e)
         {
-            DupCard12.Image = Properties.Resources.Card12;
+            PictureBox clickedCard = sender as PictureBox;
+            // 이미 DupCard1이 선택된 경우 아무 작업도 하지 않음
+            if (isClickBlocked)
+                return;
+            if (pendingImage1 == DupCard12 || pendingImage2 == DupCard12)
+                return;
+
+            DupCard12.Image = Properties.Resources.Card12; // DupCard1의 이미지를 표시
+
             if (pendingImage1 == null)
             {
-                pendingImage1 = DupCard12;
+                pendingImage1 = DupCard12; // 첫 번째 카드 선택
             }
             else if (pendingImage1 != null && pendingImage2 == null)
             {
-                pendingImage2 = DupCard12;
+                pendingImage2 = DupCard12; // 두 번째 카드 선택
             }
+
             if (pendingImage1 != null && pendingImage2 != null)
             {
+                isClickBlocked = true;
                 if (pendingImage1.Tag == pendingImage2.Tag)
                 {
+                    pendingImage1.Enabled = false;
+                    pendingImage2.Enabled = false;
+
                     pendingImage1 = null;
                     pendingImage2 = null;
-                    Card12.Enabled = false;
-                    DupCard12.Enabled = false;
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) + 10);
+                    isClickBlocked = false;
                 }
                 else
                 {
                     ScoreCounter.Text = Convert.ToString(Convert.ToInt32(ScoreCounter.Text) - 10);
                     timer3.Start();
                 }
-
             }
         }
         #endregion
@@ -845,13 +1115,21 @@ namespace GAME14
         private void timer3_Tick(object sender, EventArgs e)// 목적 잘못된 카드 선택 시, 선택된 두 장의 카드를 다시 뒤집어 원래 상태로 되돌립니다.
                                                             //선택된 두 카드를 초기화하여 다음 비교가 가능하도록 준비합니다.
         {
+
+            // timer3이 작동할 때 카드 뒤집기
+            pendingImage1.Image = Properties.Resources.Cover2;
+            pendingImage2.Image = Properties.Resources.Cover2;
+
+            // 상태 초기화
+            pendingImage1 = null;
+            pendingImage2 = null;
+
+            // 카드 클릭 차단 해제
+            isClickBlocked = false;
+
+            // timer3을 중지하여 반복되지 않게 설정
             timer3.Stop();
-            //타이머를 멈춥니다.
-            //timer3는 카드 두 장을 선택했을 때 일정 시간(예: 1초)을 기다렸다가 실행됩니다.
-            pendingImage1.Image = Properties.Resources.Cover;//첫 번째 선택된 카드의 이미지를 "뒷면" 이미지(Cover)로 되돌립니다.
-            pendingImage2.Image = Properties.Resources.Cover;//두 번째 선택된 카드의 이미지를 "뒷면"으로 되돌립니다.
-            pendingImage1 = null;//선택된 카드 참조를 초기화합니다.
-            pendingImage2 = null;//이를 통해 다음 선택 시 새로운 카드를 저장할 수 있도록 준비합니다.
+
 
         }
 
